@@ -900,7 +900,9 @@ function LinkedInTab({ showToast }) {
   React.useEffect(() => { loadRecommendations() }, [user.id])
 
   function applyFilters() {
-    loadRecommendations(false, filters)
+    // Force refresh so LinkedIn is re-queried with the new location/keyword.
+    // Using GET (non-refresh) risks serving a cached result that ignores the new filters.
+    loadRecommendations(true, filters)
   }
 
   function resetFilters() {
@@ -914,7 +916,7 @@ function LinkedInTab({ showToast }) {
       includeAdjacent: true,
     }
     setFilters(reset)
-    loadRecommendations(false, reset)
+    loadRecommendations(true, reset)
   }
 
   if (loading) return (

@@ -25,7 +25,7 @@ export default function RecruiterDashboard() {
 
   function signOut() {
     localStorage.removeItem('user')
-    localStorage.removeItem('preplace_user') 
+    localStorage.removeItem('preplace_user')
     navigate('/')
   }
 

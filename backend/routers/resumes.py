@@ -21,7 +21,7 @@ from .common import (
     get_db,
     get_resume_text_for_scoring,
     get_user_or_404,
-    log_audit,
+    log_audit, 
     score_resume_against_target,
     score_from_analysis,
     to_iso,
@@ -29,6 +29,64 @@ from .common import (
 )
 
 router = APIRouter()
+
+
+@router.get("/public/leaderboard", tags=["Resumes"])
+def public_leaderboard(limit: int = 20, db=Depends(get_db)):
+    """Return top N active resumes ranked by score — public, no auth required."""
+    import re as _re
+    limit = max(1, min(limit, 50))
+    rows = (
+        db.query(models.Resume, models.UserDB)
+        .join(models.UserDB, models.Resume.user_id == models.UserDB.id)
+        .filter(
+            models.Resume.is_active == True,
+            models.Resume.is_deleted == False,
+            models.Resume.score != None,
+        )
+        .order_by(models.Resume.score.desc())
+        .limit(limit)
+        .all()
+    )
+
+    def _parse_insights(analysis: str) -> dict:
+        """Extract Strong Points and Improvements from Gemini v1 analysis text."""
+        if not analysis or "target role:" in analysis.lower():
+            return {"strong_points": [], "improvements": [], "has_insights": False}
+        strong: list[str] = []
+        improvements: list[str] = []
+        sp_match = _re.search(r"Strong Points?:\s*\n((?:[ \t]*-[^\n]+\n?)+)", analysis, _re.IGNORECASE)
+        if sp_match:
+            for line in sp_match.group(1).splitlines():
+                line = line.strip().lstrip("- ").strip()
+                if line:
+                    strong.append(line)
+        im_match = _re.search(r"Improvements?:\s*\n((?:[ \t]*-[^\n]+\n?)+)", analysis, _re.IGNORECASE)
+        if im_match:
+            for line in im_match.group(1).splitlines():
+                line = line.strip().lstrip("- ").strip()
+                if line:
+                    improvements.append(line)
+        return {
+            "strong_points": strong[:4],
+            "improvements": improvements[:4],
+            "has_insights": bool(strong or improvements),
+        }
+
+    result = []
+    for rank, (resume, user) in enumerate(rows, start=1):
+        insights = _parse_insights(resume.analysis or "")
+        result.append({
+            "rank": rank,
+            "name": user.name,
+            "score": resume.score,
+            "suggested_role": resume.suggested_role or "",
+            "strong_points": insights["strong_points"],
+            "improvements": insights["improvements"],
+            "has_insights": insights["has_insights"],
+        })
+    return result
+
 
 
 @router.post("/upload-resume", tags=["Resumes"])
@@ -234,7 +292,10 @@ def upload_resume_v2(
             resolved_recruiter_id = owner.id
     resolved_listing_id = listing_id
 
-    analysis = f"V2 deterministic scoring target role: {target_role or 'General Role'}"
+    # ── Gemini: full analysis + role (runs in background of the vector scoring) ──
+    # Score stays vector-based; Gemini only provides the human-readable overview.
+    analysis = analyze_resume(resume_text)
+    gemini_role = extract_role(analysis)  # Gemini-assigned role
     score = 0
     breakdown = {
         "vector_score": 0.0,
@@ -300,8 +361,18 @@ def upload_resume_v2(
                 recruiter_id=resolved_recruiter_id, listing_id=resolved_listing_id,
             )
             score = breakdown["final_score"]
+        else:
+            # No JD/template — score against Gemini-inferred role so score is never 0
+            fallback_target = build_scoring_target(gemini_role or "Software Engineer", "")
+            temp_resume = models.Resume(parsed_text=existing_text, analysis=analysis, score=0, suggested_role=gemini_role or "")
+            breakdown = score_resume_against_target(
+                db, temp_resume, target_text=fallback_target,
+                recruiter_id=None, listing_id=None,
+            )
+            score = breakdown["final_score"]
 
-        best_fit_role = _compute_best_fit_role(existing_text)
+        # Use Gemini role if available, else fall back to vector best-fit
+        best_fit_role = gemini_role or _compute_best_fit_role(existing_text)
 
         db.query(models.Resume).filter(models.Resume.user_id == user_id).update({"is_active": False})
         existing_resume.is_active = True
@@ -350,8 +421,21 @@ def upload_resume_v2(
             listing_id=resolved_listing_id,
         )
         score = breakdown["final_score"]
+    else:
+        # No JD/template — score against Gemini-inferred role so score is never 0
+        fallback_target = build_scoring_target(gemini_role or "Software Engineer", "")
+        temp_resume = models.Resume(parsed_text=resume_text, analysis=analysis, score=0, suggested_role=gemini_role or "")
+        breakdown = score_resume_against_target(
+            db,
+            temp_resume,
+            target_text=fallback_target,
+            recruiter_id=None,
+            listing_id=None,
+        )
+        score = breakdown["final_score"]
 
-    best_fit_role = _compute_best_fit_role(resume_text)
+    # Use Gemini role if available, else fall back to vector best-fit
+    best_fit_role = gemini_role or _compute_best_fit_role(resume_text)
 
     db.query(models.Resume).filter(models.Resume.user_id == user_id).update({"is_active": False})
     resume = models.Resume(

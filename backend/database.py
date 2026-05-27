@@ -9,7 +9,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv(
 	"DATABASE_URL",
-	"postgresql+psycopg2://preplace_user:preplace_pass@localhost:5433/preplac",
+	"postgresql+psycopg2://sourbhsharma:1234@localhost/preplac",
 )
 
 engine = create_engine(DATABASE_URL)

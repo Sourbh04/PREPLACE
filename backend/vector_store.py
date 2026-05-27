@@ -32,7 +32,7 @@ class VectorStore:
             )
             self._resume_collection = self._client.get_or_create_collection(
                 name="resumes",
-                embedding_function=ef,
+                embedding_function=ef, 
                 metadata={"hnsw:space": "cosine"},
             )
             self.enabled = True
@@ -224,8 +224,7 @@ class VectorStore:
         # ── Combine and calibrate ────────────────────────────────────────────
         # Skill fit stays dominant for role discrimination.
         raw = 0.75 * skill_score + 0.12 * exp_score + 0.13 * role_score
-        calibrated = min(100.0, raw * 1.05)
-        return round(calibrated, 2)
+        return round(min(100.0, raw), 2)
 
     def _infer_skill_score(self, role_raw: str, resume_lower: str, taxonomy: dict) -> float:
         """
@@ -324,7 +323,7 @@ class VectorStore:
         raw    = 0.65 * top3[0] + 0.35 * (sum(top3) / len(top3))
         # Calibrate: practical ceiling for MiniLM resume-vs-JD cosine is ~0.52.
         # Mapping [0, 52] → [0, 100] gives more useful scores for role-specific JDs.
-        calibrated = min(100.0, raw * (100.0 / 52.0))
+        calibrated = min(100.0, raw * (100.0 / 65.0))
         return round(calibrated, 2)
 
 

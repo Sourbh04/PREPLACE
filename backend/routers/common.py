@@ -20,7 +20,7 @@ HYBRID_RULE_WEIGHT = max(0.0, 1.0 - HYBRID_VECTOR_WEIGHT)
 def clamp_score(value: float) -> int:
     return max(0, min(100, int(round(value))))
 
-
+ 
 def to_iso(value):
     if not value:
         return None
@@ -32,10 +32,10 @@ def to_iso(value):
 def extract_role(analysis_text: str) -> str:
     if not analysis_text:
         return ""
-    match = re.search(r"Suggested Role:\\s*(.+)", analysis_text, re.IGNORECASE)
+    match = re.search(r"Suggested Role:\s*(.+)", analysis_text, re.IGNORECASE)
     if match:
         return match.group(1).strip().rstrip(".")[:80]
-    match = re.search(r"Role:\\s*(.+)", analysis_text, re.IGNORECASE)
+    match = re.search(r"Role:\s*(.+)", analysis_text, re.IGNORECASE)
     if match:
         return match.group(1).strip().rstrip(".")[:80]
     return ""
@@ -379,7 +379,11 @@ def score_resume_against_target(db, resume: models.Resume, target_text: str, rec
     structural_bonus = structural["structural_bonus"]
 
     if target_text.strip() and vector_score > 0:
-        final_score = clamp_score(vector_score + boost_total + structural_bonus - penalty_total)
+        # vector_score is already on a 0–100 scale.
+        # Bonuses/penalties are applied as percentage-point adjustments,
+        # clamped so they can never push the score above 100.
+        adjusted = vector_score + (boost_total * 0.5) + (structural_bonus * 0.4) - penalty_total
+        final_score = clamp_score(adjusted)
         engine = "vector_penalty_v2"
         fallback_reason = None
     else:

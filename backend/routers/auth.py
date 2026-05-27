@@ -20,7 +20,7 @@ def register_user(user: UserCreate, db=Depends(get_db)):
     db.refresh(new_user)
     log_audit(db, "user.register", actor_id=new_user.id, target_type="user", target_id=new_user.id, detail=f"role={new_user.role}")
     return {"message": "User saved in database"}
-
+ 
 
 @router.post("/register-recruiter", tags=["Auth"])
 def register_recruiter(data: RecruiterRegister, db=Depends(get_db)):

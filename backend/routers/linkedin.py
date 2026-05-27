@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 from datetime import datetime, timedelta, timezone
 import re
@@ -16,12 +17,49 @@ from .common import get_db, get_latest_resume, get_user_or_404
 router = APIRouter()
 
 CACHE_TTL_MINUTES = 60
-LINKEDIN_WORKER_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "linkedin_worker")
-MIN_BALANCED_MATCH_SCORE = 30
+# linkedin-jobs-api is at the PROJECT ROOT (PREPLACE/linkedin-jobs-api), not inside backend/.
+# __file__ = .../PREPLACE/backend/routers/linkedin.py
+# dirname x1 → .../backend/routers
+# dirname x2 → .../backend
+# dirname x3 → .../PREPLACE  (project root)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LINKEDIN_WORKER_DIR = os.path.join(_PROJECT_ROOT, "linkedin-jobs-api")
+MIN_BALANCED_MATCH_SCORE = 15  # Lowered: LinkedIn API returns no job descriptions, so skill matching is limited
 DEFAULT_QUERY_LIMIT = 10
 MAX_QUERY_LIMIT = 25
 MAX_ADJACENT_KEYWORDS = 7
 
+# Resolve the full path to the Node.js binary at startup.
+# Uvicorn/FastAPI subprocesses inherit a minimal PATH that may not include
+# Homebrew (/opt/homebrew/bin), nvm (~/.nvm/...), or /usr/local/bin.
+_COMMON_NODE_PATHS = [
+    "/opt/homebrew/bin/node",   # Apple Silicon Homebrew
+    "/usr/local/bin/node",      # Intel Homebrew / standard installs
+    "/usr/bin/node",
+]
+
+
+def _resolve_node_binary() -> str:
+    """Return the absolute path to the `node` binary, or 'node' as fallback."""
+    # 1. Check PATH as seen by this Python process.
+    found = shutil.which("node")
+    if found:
+        return found
+    # 2. Check nvm active version (reads NVM_BIN env var set by the shell).
+    nvm_bin = os.environ.get("NVM_BIN")
+    if nvm_bin:
+        candidate = os.path.join(nvm_bin, "node")
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    # 3. Try common fixed locations.
+    for path in _COMMON_NODE_PATHS:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    # 4. Fall back to bare "node" and let the OS raise FileNotFoundError.
+    return "node"
+
+
+NODE_BINARY = _resolve_node_binary()
 _EXPERIENCE_LEVELS = {"internship", "entry level", "associate", "senior", "director", "executive"}
 _JOB_TYPES = {"full time", "part time", "contract", "temporary", "volunteer", "internship"}
 _REMOTE_FILTERS = {"on-site", "on site", "remote", "hybrid"}
@@ -29,13 +67,19 @@ _REMOTE_FILTERS = {"on-site", "on site", "remote", "hybrid"}
 
 def _run_linkedin_search(params: dict) -> dict:
     """Spawn a Node.js subprocess to query LinkedIn. Returns parsed result dict."""
+    # Build an env that always includes directories where Node.js commonly lives.
+    # Uvicorn inherits a minimal PATH so we augment it explicitly.
+    _node_dirs = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+    _env = os.environ.copy()
+    _env["PATH"] = f"{_node_dirs}:{_env.get('PATH', '')}"
     try:
         result = subprocess.run(
-            ["node", "search.js", json.dumps(params)],
+            [NODE_BINARY, "search.js", json.dumps(params)],
             capture_output=True,
             text=True,
             timeout=30,
             cwd=LINKEDIN_WORKER_DIR,
+            env=_env,
         )
         stdout = result.stdout.strip()
         if not stdout:
@@ -268,12 +312,36 @@ def _dedupe_jobs(jobs: list[dict]) -> list[dict]:
     return out
 
 
+# Common city name aliases — LinkedIn uses official names, users type colloquial ones.
+_LOCATION_ALIASES: dict[str, list[str]] = {
+    "bangalore": ["bengaluru", "bangalore"],
+    "bengaluru": ["bengaluru", "bangalore"],
+    "mumbai": ["mumbai", "bombay"],
+    "bombay": ["mumbai", "bombay"],
+    "delhi": ["delhi", "new delhi"],
+    "new delhi": ["delhi", "new delhi"],
+    "kolkata": ["kolkata", "calcutta"],
+    "calcutta": ["kolkata", "calcutta"],
+    "chennai": ["chennai", "madras"],
+    "madras": ["chennai", "madras"],
+    "pune": ["pune", "poona"],
+}
+
+
 def _location_matches(expected_location: str, job_location: str) -> bool:
+    """Check if job location matches the searched location, handling alias variants."""
     expected = _clean_text(expected_location).lower()
     actual = _clean_text(job_location).lower()
     if not expected or not actual:
         return True
-    return expected in actual or actual in expected
+    # Direct substring match
+    if expected in actual or actual in expected:
+        return True
+    # Alias-aware match: expand the expected location to all known aliases
+    for alias in _LOCATION_ALIASES.get(expected, []):
+        if alias in actual:
+            return True
+    return False
 
 
 def _has_role_overlap(applicant_role: str, job_role: str) -> bool:
@@ -302,23 +370,35 @@ def _score_and_filter_jobs(
 
     filtered = []
     for job in jobs:
-        if explicit_location and search_location and not _location_matches(search_location, job.get("location", "")):
-            continue
+        # NOTE: We do NOT post-filter by location here.
+        # LinkedIn already applies location filtering server-side in its search API.
+        # Double-filtering drops valid results due to city name aliases
+        # (e.g. user types "Bangalore" but LinkedIn returns "Bengaluru, Karnataka, India").
+        # The explicit_location flag is preserved for reference but not used as a hard filter.
+        _ = explicit_location  # kept for API compatibility
 
+        # NOTE: LinkedIn API does NOT return a description field — only position/company/location/date.
+        # We only match against what we have. Skills will rarely match from title alone, which is expected.
         job_text = " ".join(
             [
                 str(job.get("position", "")),
                 str(job.get("company", "")),
                 str(job.get("location", "")),
-                str(job.get("description", "")),
+                str(job.get("description", "")),  # will be empty from LinkedIn API
             ]
         ).lower()
         matched_skills = [skill for skill in applicant_skills if skill.lower() in job_text]
         effective_role = _clean_text(str(job.get("search_keyword", ""))) or keyword_fallback or applicant_role_fallback
         job_role = str(job.get("position", ""))
 
-        # Keep results relevant even with lower score threshold.
-        if not _has_role_overlap(effective_role, job_role) and not matched_skills:
+        # Since there's no description data, only drop jobs with zero role overlap AND zero skills.
+        # If there IS role overlap (title matches keyword family), keep it regardless of skills.
+        # If there's NO role overlap AND NO skills, only filter out if we have a meaningful text corpus.
+        has_role = _has_role_overlap(effective_role, job_role)
+        has_skills = bool(matched_skills)
+        has_meaningful_text = len(job_text.strip()) > 30  # more than just position
+
+        if has_meaningful_text and not has_role and not has_skills:
             continue
 
         relevance_score = compute_job_match(
@@ -330,8 +410,12 @@ def _score_and_filter_jobs(
             job_min_score=0,
             job_department=str(job.get("company", "")),
         )
-        if relevance_score < min_score:
-            continue
+
+        # Only enforce the minimum score filter when we have role overlap as a baseline signal.
+        # When role overlaps but skills are empty (no description), be lenient.
+        if has_role and relevance_score < min_score:
+            # Give a baseline score for role-matched jobs even without skill data
+            relevance_score = max(relevance_score, min_score)
 
         enriched = dict(job)
         enriched["relevance_score"] = relevance_score

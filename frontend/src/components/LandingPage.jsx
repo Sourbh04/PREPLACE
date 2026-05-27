@@ -15,7 +15,7 @@ function ParticleCanvas() {
     resize()
     window.addEventListener('resize', resize)
 
-    class Particle { 
+    class Particle {
       constructor() { this.reset() }
       reset() {
         this.x = Math.random() * W; this.y = Math.random() * H

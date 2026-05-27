@@ -11,7 +11,7 @@ from .common import get_db, log_audit, to_iso, upsert_job_vector
 
 router = APIRouter()
 
-
+ 
 def _serialize_penalty_rule(rule: models.PenaltyRule) -> dict:
     return {
         "id": rule.id,
@@ -21,7 +21,7 @@ def _serialize_penalty_rule(rule: models.PenaltyRule) -> dict:
         "penalty_value": int(rule.penalty_value or 0),
         "is_active": bool(rule.is_active),
     }
-
+ 
 
 @router.get("/admin/recruiters", tags=["Admin"])
 def admin_get_recruiters(db=Depends(get_db)):

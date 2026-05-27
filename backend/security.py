@@ -24,7 +24,7 @@ def verify_password(password: str, stored: str) -> bool:
 
     try:
         _, salt, expected_hex = stored.split("$", 2)
-    except ValueError:
+    except ValueError: 
         return False
 
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120000)

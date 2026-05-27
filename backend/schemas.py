@@ -25,7 +25,7 @@ class JobListingCreate(BaseModel):
     job_type: str = "Internship"
     location: str = ""
     ctc: str = ""
-    description: str = ""
+    description: str = "" 
     skills: str = ""          # comma-separated
     min_cgpa: float = 0
     min_score: int = 0

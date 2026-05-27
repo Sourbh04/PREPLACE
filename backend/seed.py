@@ -279,7 +279,7 @@ RESUMES = [
 
 # (applicant_email, job_role_title, status)
 APPLICATIONS = [
-    ("alice@example.com",   "SDE Intern",         "applied"),
+    ("alice@example.com",   "SDE Intern",         "applied"), 
     ("alice@example.com",   "Data Analyst",       "saved"),
     ("bob@example.com",     "Backend Engineer",   "applied"),
     ("bob@example.com",     "Frontend Developer", "saved"),

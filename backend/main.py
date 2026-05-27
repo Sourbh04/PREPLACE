@@ -15,7 +15,7 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 
 # ===================== STARTUP =====================
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine) 
 
 
 def ensure_schema_updates() -> None:
@@ -140,7 +140,7 @@ def ensure_schema_updates() -> None:
         for stmt in ddl:
             conn.execute(text(stmt))
 
-
+ 
 ensure_schema_updates()
 
 
@@ -164,7 +164,7 @@ def seed_admin() -> None:
         db.close()
 
 
-def seed_scoring_defaults() -> None:
+def seed_scoring_defaults(admin_id: int | None = None) -> None:
     db = SessionLocal()
     try:
         defaults = [
@@ -465,7 +465,7 @@ def seed_scoring_defaults() -> None:
         existing = {t.title: t for t in db.query(models.ScoringTemplate).all()}
         for row in defaults:
             if row["title"] not in existing:
-                db.add(models.ScoringTemplate(**row, is_active=True, created_by=1))
+                db.add(models.ScoringTemplate(**row, is_active=True, created_by=admin_id))
             else:
                 # Update description so scoring stays accurate as templates evolve
                 existing[row["title"]].description = row["description"]
@@ -476,7 +476,7 @@ def seed_scoring_defaults() -> None:
         db.close()
 
 
-def seed_penalty_defaults() -> None:
+def seed_penalty_defaults(admin_id: int | None = None) -> None:
     db = SessionLocal()
     try:
         existing = (
@@ -524,7 +524,7 @@ def seed_penalty_defaults() -> None:
                     keywords=rule["keywords"],
                     penalty_value=rule["penalty_value"],
                     is_active=True,
-                    created_by=1,
+                    created_by=admin_id,
                 )
             )
         db.commit()
@@ -532,11 +532,22 @@ def seed_penalty_defaults() -> None:
         db.close()
 
 
+def get_admin_id() -> int | None:
+    """Return the DB primary key of the admin user, or None if not found."""
+    db = SessionLocal()
+    try:
+        admin = db.query(models.UserDB).filter(models.UserDB.email == "admin@preplace.smvdu").first()
+        return admin.id if admin else None
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_admin()
-    seed_scoring_defaults()
-    seed_penalty_defaults()
+    admin_id = get_admin_id()
+    seed_scoring_defaults(admin_id)
+    seed_penalty_defaults(admin_id)
     yield
 
 

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+client = genai.Client(api_key="AIzaSyBw5SM2UsInAaCgSfYzGsSY_ogVqTuW2ew") if GEMINI_API_KEY else None
 
 
 def extract_text_from_pdf(file_path: str) -> str:
