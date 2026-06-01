@@ -16,7 +16,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)]()
-[![Time](https://img.shields.io/badge/Built_In-4_Months-orange?style=for-the-badge)]()
+
 [![University](https://img.shields.io/badge/SMVDU-B.Tech_CSE-red?style=for-the-badge)]()
 
 </div>
