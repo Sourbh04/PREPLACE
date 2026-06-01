@@ -66,6 +66,7 @@ PREPLACE (**Placement + Replace**) is a full-stack AI-powered campus placement p
 ---
 
 ## Project Structure
+'''text
 PREPLACE/
 ├── backend/
 │   ├── main.py                   # FastAPI app entry point, router registration
@@ -103,6 +104,7 @@ PREPLACE/
 ├── linkedin-worker/              # Node.js LinkedIn job fetcher
 ├── .gitignore
 └── README.md
+'''
 
 ## Local Setup
 
