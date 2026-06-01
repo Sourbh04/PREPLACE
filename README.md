@@ -66,7 +66,9 @@ PREPLACE (**Placement + Replace**) is a full-stack AI-powered campus placement p
 ---
 
 ## Project Structure
-'''text
+## Project Structure
+
+```text
 PREPLACE/
 ├── backend/
 │   ├── main.py                   # FastAPI app entry point, router registration
@@ -82,29 +84,29 @@ PREPLACE/
 │   │   ├── analytics.py          # Recruiter + applicant analytics
 │   │   ├── audit.py              # Audit log retrieval
 │   │   └── linkedin.py           # LinkedIn job feed (cached)
-│   ├── models/                   # SQLAlchemy ORM models
-│   ├── schemas/                  # Pydantic request/response schemas
+│   ├── models/
+│   ├── schemas/
 │   ├── services/
-│   │   ├── ai_service.py         # Gemini + ChromaDB pipeline
-│   │   ├── scoring_service.py    # Hybrid score computation
-│   │   ├── matching_service.py   # Bidirectional vector matching
-│   │   └── audit_service.py      # Audit log writes
+│   │   ├── ai_service.py
+│   │   ├── scoring_service.py
+│   │   ├── matching_service.py
+│   │   └── audit_service.py
 │   ├── .env.example
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── LandingPage.jsx       # Public page + leaderboard
-│   │   ├── Dashboard.jsx         # Student view
+│   │   ├── LandingPage.jsx
+│   │   ├── Dashboard.jsx
 │   │   ├── RecruiterDashboard.jsx
 │   │   ├── AdminDashboard.jsx
 │   │   ├── JobDetailsPage.jsx
-│   │   └── Shared.jsx            # Toast, loaders, shared components
+│   │   └── Shared.jsx
 │   ├── index.html
 │   └── package.json
-├── linkedin-worker/              # Node.js LinkedIn job fetcher
+├── linkedin-worker/
 ├── .gitignore
 └── README.md
-'''
+```
 
 ## Local Setup
 
