@@ -7,17 +7,15 @@
 
 *Built for Shri Mata Vaishno Devi University, Katra*
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Store-FF6B35?style=for-the-badge)](https://trychroma.com)
 [![Gemini](https://img.shields.io/badge/Google_Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)]()
-
-[![University](https://img.shields.io/badge/SMVDU-B.Tech_CSE-red?style=for-the-badge)]()
 
 </div>
 
@@ -241,24 +239,7 @@ This runs automatically when a student visits the LinkedIn Suggestions tab. Requ
 ---
 ---
 
-## Built By
 
-<div align="center">
-
-Made with ❤️ at SMVDU
-
-**Ayush Patel** (23bcs022) &nbsp;·&nbsp; **Sourbh Sharma** (23bcs089)
-
-B.Tech Computer Science & Engineering · 6th Semester
-
-School of Computer Science & Engineering  
-Shri Mata Vaishno Devi University, Katra · Session 2025–2026
-
-*Guide: Mr. Anuj Mahajan*
-
-</div>
-
----
 
 ## License
 MIT License
