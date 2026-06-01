@@ -1,8 +1,27 @@
+<div align="center">
+
+<img src="https://img.shields.io/badge/PREPLACE-AI-blueviolet?style=for-the-badge&logoColor=white" />
+
 # PREPLACE AI
 ### AI-Driven Campus Placement Intelligence Platform
 
 *Built for Shri Mata Vaishno Devi University, Katra*
 
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Store-FF6B35?style=for-the-badge)](https://trychroma.com)
+[![Gemini](https://img.shields.io/badge/Google_Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)]()
+[![Time](https://img.shields.io/badge/Built_In-4_Months-orange?style=for-the-badge)]()
+[![University](https://img.shields.io/badge/SMVDU-B.Tech_CSE-red?style=for-the-badge)]()
+
+</div>
+
+---
 ## What is PREPLACE?
 
 PREPLACE (**Placement + Replace**) is a full-stack AI-powered campus placement platform that completely replaces the manual, slow, and inconsistent placement process at SMVDU with an intelligent, data-driven system.
