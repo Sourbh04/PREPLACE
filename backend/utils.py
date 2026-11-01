@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-client = genai.Client(api_key="AIzaSyBw5SM2UsInAaCgSfYzGsSY_ogVqTuW2ew") if GEMINI_API_KEY else None
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 
 def extract_text_from_pdf(file_path: str) -> str:
@@ -253,8 +253,8 @@ Resume:
     from google.genai.errors import ClientError, ServerError
 
     models_to_try = [
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
     ]
 
     for model_name in models_to_try:
@@ -410,7 +410,7 @@ JSON output only:"""
 
     from google.genai.errors import ClientError, ServerError
 
-    models_to_try = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+    models_to_try = ["gemini-flash-latest", "gemini-3.8-flash"]
 
     for model_name in models_to_try:
         for attempt in range(2):
@@ -733,7 +733,7 @@ Resume text:
 
     from google.genai.errors import ClientError, ServerError
 
-    models_to_try = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+    models_to_try = ["gemini-flash-latest", "gemini-3.8-flash"]
     for model_name in models_to_try:
         for attempt in range(2):
             try:

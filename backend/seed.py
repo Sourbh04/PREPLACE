@@ -28,16 +28,12 @@ import models
 from models import Base
 from security import hash_password
 
-# ---------------------------------------------------------------------------
 # Demo credentials (printed at the end for quick reference)
-# ---------------------------------------------------------------------------
 RECRUITER_PASSWORD = "recruiter@123"
 APPLICANT_PASSWORD = "applicant@123"
 ADMIN_PASSWORD = "admin@123"
 
-# ---------------------------------------------------------------------------
 # Seed data definitions
-# ---------------------------------------------------------------------------
 
 USERS = [
     # (name, email, password, role)
@@ -288,9 +284,9 @@ APPLICATIONS = [
 ]
 
 
-# ---------------------------------------------------------------------------
+
 # Helpers
-# ---------------------------------------------------------------------------
+
 
 def _file_hash(email: str) -> str:
     """Deterministic stub hash derived from the applicant's email."""
@@ -303,9 +299,9 @@ def _section(title: str) -> None:
     print(f"{'─' * 50}")
 
 
-# ---------------------------------------------------------------------------
+
 # Seed functions
-# ---------------------------------------------------------------------------
+
 
 def seed_users(db) -> dict[str, int]:
     """Seed users. Returns {email: user_id} for all demo users."""
@@ -519,9 +515,7 @@ def seed_applications(
     db.commit()
 
 
-# ---------------------------------------------------------------------------
 # Entry point
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     print("\n" + "=" * 50)

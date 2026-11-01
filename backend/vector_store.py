@@ -118,7 +118,7 @@ class VectorStore:
         # PRECISE engine fallback — reliable, cost-free, no external calls.
         return self._precise_score(text_a, text_b)
 
-    # -- Internal helpers --------------------------------------------------
+    # -- Internal helpers 
 
     def _precise_score(self, resume_text: str, target_text: str) -> float:
         """
@@ -136,7 +136,7 @@ class VectorStore:
         _role_m = re.search(r"role:\s*([^.]+)", target_lower)
         role_raw = _role_m.group(1).strip() if _role_m else ""
 
-        # ── A. Skill Group Coverage ──────────────────────────────────────────
+        # ── A. Skill Group Coverage 
         TAXONOMY: dict[str, tuple[float, frozenset]] = {
             "prog_lang":    (0.15, frozenset({"python","java","javascript","typescript","golang","rust","kotlin","swift","c#","ruby","php","scala","bash","perl"})),
             "web_backend":  (0.12, frozenset({"django","fastapi","flask","express","spring","rails","laravel","nestjs","fastify","gin","fiber","actix","hapi","koa","node.js","nodejs"})),
